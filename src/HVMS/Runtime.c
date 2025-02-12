@@ -33,7 +33,7 @@ typedef float    f32;
 #define F32 0x0E
 #define MAT 0x0F
 
-const Term VOID = 0;
+#define VOID 0
 
 // Operators
 #define OP_ADD 0x00
@@ -768,4 +768,61 @@ void dump_buff() {
     printf("%06X %03X %03X %s\n", loc, term_loc(term), term_lab(term), tag_to_str(term_tag(term)));
   }
   printf("------------------\n");
+}
+
+void dump_book() {
+  printf("// Generated HVM book initialization\n\n");
+  printf("#include <stdint.h>\n");
+  printf("#include \"Runtime.c\"\n\n");
+
+  // First declare the static arrays for each definition
+  for (u32 i = 0; i < BOOK.len; i++) {
+    Def def = BOOK.defs[i];
+    printf("// Definition: %s\n", def.name);
+    printf("static Term %s_nodes[] = {", def.name);
+    for (u32 j = 0; j < def.nodes_len; j++) {
+      if (j % 4 == 0) printf("\n  ");
+      printf("0x%016llX,", (unsigned long long)def.nodes[j]);
+    }
+    printf("\n};\n");
+
+    printf("static Term %s_rbag[] = {", def.name);
+    for (u32 j = 0; j < def.rbag_len; j++) {
+      if (j % 4 == 0) printf("\n  ");
+      printf("0x%016llX,", (unsigned long long)def.rbag[j]);
+    }
+    printf("\n};\n\n");
+  }
+
+  // Then create the definitions array
+  printf("static Def definitions[] = {\n");
+  Loc main_idx = -1;
+  for (u32 i = 0; i < BOOK.len; i++) {
+    Def def = BOOK.defs[i];
+    if (strcmp(def.name, "main") == 0) {
+      main_idx = i;
+    }
+    printf("  {\n");
+    printf("    .name = \"%s\",\n", def.name);
+    printf("    .nodes = %s_nodes,\n", def.name);
+    printf("    .nodes_len = %llu,\n", (unsigned long long)def.nodes_len);
+    printf("    .rbag = %s_rbag,\n", def.name);
+    printf("    .rbag_len = %llu\n", (unsigned long long)def.rbag_len);
+    printf("  },\n");
+  }
+  printf("};\n\n");
+
+  // Finally create the initialization function
+  printf("int main() {\n");
+  printf("  hvm_init();\n");
+  printf("  BOOK.defs = definitions;\n");
+  printf("  BOOK.len = %u;\n", BOOK.len);
+  printf("  BOOK.cap = %u;\n", BOOK.len);
+  printf("  Term main = term_new(REF, 0, %u);\n", main_idx);
+  printf("  normalize(main);\n");
+  printf("  dump_buff();\n");
+  printf("  printf(\"%%04lX\\n\", inc_itr());\n");
+  printf("  hvm_free();\n");
+  printf("  return 0;\n");
+  printf("}\n");
 }

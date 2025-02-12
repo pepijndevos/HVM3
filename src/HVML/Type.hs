@@ -206,12 +206,6 @@ foreign import ccall unsafe "Runtime.c hvm_get_state"
   hvmGetState :: IO (Ptr ())
 foreign import ccall unsafe "Runtime.c hvm_set_state"
   hvmSetState :: Ptr () -> IO ()
-foreign import ccall unsafe "Runtime.c u12v2_new"
-  u12v2New :: Word64 -> Word64 -> Word64
-foreign import ccall unsafe "Runtime.c u12v2_x"
-  u12v2X :: Word64 -> Word64
-foreign import ccall unsafe "Runtime.c u12v2_y"
-  u12v2Y :: Word64 -> Word64
 foreign import ccall unsafe "Runtime.c hvm_set_cari"
   hvmSetCari :: Word64 -> Word16 -> IO ()
 foreign import ccall unsafe "Runtime.c hvm_set_clen"

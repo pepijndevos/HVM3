@@ -42,6 +42,7 @@ cliRun filePath showStats = do
     Left  err -> exitWithError ("ParserError: " ++ err)
 
   maybeMain <- doInjectBook book
+  dumpBook
   main <- case maybeMain of
     Just main -> pure main
     Nothing -> exitWithError "missing 'main' definition"
@@ -49,7 +50,7 @@ cliRun filePath showStats = do
   term <- normalize main
 
   net <- extractNet term
-  putStrLn $ netToString net
+  --putStrLn $ netToString net
 
   when showStats $ do
     end <- getCPUTime
